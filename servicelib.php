@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
 // Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: January 07, 2015.
+// Date: June 16, 2015.
 $RWSEDBG = false;
 $RWSDBGL = "respondusws_err.log";
 $RWSIHLOG = false;
@@ -37,7 +37,8 @@ if ($r_rsf) {
 if ($r_rsf) {
     $r_rsf = is_readable("$CFG->libdir/completionlib.php");
 }
-if ($r_rsf) {
+if ($r_rsf && $CFG->version >= 2015051100) {
+} else if ($r_rsf) {
     $r_rsf = is_readable("$CFG->libdir/conditionlib.php");
 }
 if ($r_rsf) {
@@ -72,7 +73,7 @@ if ($r_rsf) {
 }
 if ($r_rsf && $CFG->version >= 2014111000) {
     $r_rsf = is_readable("$CFG->dirroot/mod/quiz/locallib.php");
-} else {
+} else if ($r_rsf) {
     $r_rsf = is_readable("$CFG->dirroot/mod/quiz/editlib.php");
 }
 if ($r_rsf) {
@@ -89,7 +90,10 @@ require_once("$CFG->libdir/moodlelib.php");
 require_once("$CFG->libdir/datalib.php");
 require_once("$CFG->libdir/filelib.php");
 require_once("$CFG->libdir/completionlib.php");
-require_once("$CFG->libdir/conditionlib.php");
+if ($CFG->version >= 2015051100) {
+} else {
+    require_once("$CFG->libdir/conditionlib.php");
+}
 require_once("$CFG->libdir/eventslib.php");
 require_once("$CFG->libdir/weblib.php");
 require_once("$CFG->libdir/accesslib.php");
@@ -350,6 +354,8 @@ function RWSCMBVer() {
         || $r_bv == 2014102102
         || $r_bv == 2014112500
         || $r_bv == 2014112501
+        || $r_bv == 2015010700
+        || $r_bv == 2015061600
     ) {
         return;
     }
@@ -1558,6 +1564,7 @@ function RWSGUVSList($r_cid) {
     return $r_secs;
 }
 function RWSGUVQList($r_cid) {
+    global $CFG;
     global $RWSUID;
     $r_vqms = array();
     $r_qzms = get_coursemodules_in_course("quiz", $r_cid);
@@ -1565,7 +1572,12 @@ function RWSGUVQList($r_cid) {
         return $r_vqms;
     }
     foreach ($r_qzms as $r_qzm) {
-        if (coursemodule_visible_for_user($r_qzm, $RWSUID)) {
+        if ($CFG->version >= 2015051100) {
+            $r_iv = \core_availability\info_module::is_user_visible($r_qzm, $RWSUID, false);
+        } else {
+            $r_iv = coursemodule_visible_for_user($r_qzm, $RWSUID);
+        }
+        if ($r_iv) {
             $r_vqms[] = $r_qzm;
         }
     }
