@@ -1,10 +1,11 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
 // Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: June 16, 2015.
+// Date: December 21, 2015.
 $RWSEDBG = false;
 $RWSDBGL = "respondusws_err.log";
 $RWSIHLOG = false;
+$RWSRWROOT = false;
 $RWSECAS  = false;
 $RWSESL3  = false;
 $RWSECMUL = false;
@@ -356,6 +357,7 @@ function RWSCMBVer() {
         || $r_bv == 2014112501
         || $r_bv == 2015010700
         || $r_bv == 2015061600
+        || $r_bv == 2015122100
     ) {
         return;
     }
@@ -431,14 +433,14 @@ function RWSGSUrl($r_fhts, $r_inq) {
     } else {
         $r_su = 'http://';
     }
-    if (empty($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
-        if (empty($_SERVER['SERVER_NAME'])) {
-            $r_su .= $_SERVER['HTTP_HOST'];
-        } else {
-            $r_su .= $_SERVER['SERVER_NAME'];
-        }
-    } else {
+    if (!empty($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
         $r_su .= $_SERVER['HTTP_X_FORWARDED_SERVER'];
+    } else if (!empty($_SERVER['HTTP_X_HOST'])) {
+        $r_su .= $_SERVER['HTTP_X_HOST'];
+    } else if (!empty($_SERVER['SERVER_NAME'])) {
+        $r_su .= $_SERVER['SERVER_NAME'];
+    } else {
+        $r_su .= $_SERVER['HTTP_HOST'];
     }
     if (strpos($r_su, ":") === false) {
         if (($r_hs && $_SERVER['SERVER_PORT'] != 443)
@@ -11559,8 +11561,10 @@ function RWSADFile() {
     exit;
 }
 function RWSAAStart() {
+    global $CFG;
     global $SESSION;
     global $RWSSRURL;
+    global $RWSRWROOT;
     $r_bo = true;
     RWSCMMaint($r_bo);
     if (isloggedin()) {
@@ -11610,6 +11614,13 @@ function RWSAAStart() {
       . "&username=" . urlencode($r_usrn)
       . "&time=" . urlencode($r_rtm)
       . "&mac=" . urlencode($r_rmc);
+    if ($RWSRWROOT) {
+        if (stripos($CFG->wwwroot, "http:") === 0) {
+            $SESSION->wantsurl = str_replace("https:", "http:", $SESSION->wantsurl);
+        } else if (stripos($CFG->wwwroot, "https:") === 0) {
+            $SESSION->wantsurl = str_replace("http:", "https:", $SESSION->wantsurl);
+        }
+    }
     $r_rurl = get_login_url();
     header("Location: $r_rurl");
     exit;

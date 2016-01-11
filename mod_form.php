@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
 // Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: June 16, 2015.
+// Date: December 21, 2015.
 defined("MOODLE_INTERNAL") || die();
 require_once("$CFG->dirroot/course/moodleform_mod.php");
 class mod_respondusws_mod_form extends moodleform_mod {
