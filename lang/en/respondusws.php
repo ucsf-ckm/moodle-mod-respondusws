@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: December 21, 2015.
+// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
+// Date: May 01, 2017.
 $respondusws_moodlecfg_file = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . "/config.php";
 require_once($respondusws_moodlecfg_file);
 defined("MOODLE_INTERNAL") || die();
@@ -9,12 +9,12 @@ $string["authenticationsettingsheader"] = "Authentication Settings";
 $string["authenticationsettingsheaderinfo"] =
   "These are optional settings for use when the Respondus 4.0 Web Service
   Extension must support authentication methods other than Manual accounts
-  (such as Shibboleth and CAS). The user name entered must be authorized to
-  create, modify and delete activities in all courses. This information is
-  never transmitted outside of this Moodle server, and all Respondus Web
-  Service requests are authenticated. If the option \"Use HTTPS for logins\"
-  in the Security->HTTP Security settings is selected, all Respondus Web
-  Service requests enforce the use of HTTPS.";
+  (such as Shibboleth and CAS). The user entered must be a Moodle site
+  administrator listed in Site administration->Users->Permissions->Site
+  administrators. This information is never transmitted outside of this Moodle
+  server, and all Respondus Web Service requests are authenticated. If the
+  option \"Use HTTPS for logins\" in the Security->HTTP Security settings is
+  selected, all Respondus Web Service requests enforce the use of HTTPS.";
 $string["username"] = "User name";
 $string["usernameinfo"] = "Respondus Web Service user name (optional).";
 $string["password"] = "Password";

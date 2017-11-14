@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: December 21, 2015.
+// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
+// Date: May 01, 2017.
 defined("MOODLE_INTERNAL") || die();
 if (!function_exists("respondusws_getsettingsstring")) {
     function respondusws_getsettingsstring($identifier) {
@@ -33,7 +33,7 @@ if ($ADMIN->fulltree) {
           new admin_setting_heading(
             "respondusws/moduleversionheader",
             respondusws_getsettingsstring("moduleversionheader"),
-            "$respondusws_info->version ($respondusws_info->respondusws_release)"
+            "$respondusws_info->version ($respondusws_info->release)"
           )
         );
     }

@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: December 21, 2015.
+// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
+// Date: May 01, 2017.
 $RWSEDBG = false;
 $RWSDBGL = "respondusws_err.log";
 $RWSIHLOG = false;
@@ -358,6 +358,8 @@ function RWSCMBVer() {
         || $r_bv == 2015010700
         || $r_bv == 2015061600
         || $r_bv == 2015122100
+        || $r_bv == 2016051300
+        || $r_bv == 2017042800
     ) {
         return;
     }
@@ -9542,8 +9544,8 @@ function RWSASInfo() {
         if (!empty($respondusws_info->version)) {
             $r_ver = $respondusws_info->version;
         }
-        if (!empty($respondusws_info->respondusws_release)) {
-            $r_rel = $respondusws_info->respondusws_release;
+        if (!empty($respondusws_info->release)) {
+            $r_rel = $respondusws_info->release;
         }
         if (!empty($respondusws_info->requires)) {
             $r_req = $respondusws_info->requires;

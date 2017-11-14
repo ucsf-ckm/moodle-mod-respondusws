@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: December 21, 2015.
+// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
+// Date: May 01, 2017.
 defined("MOODLE_INTERNAL") || die();
 require_once("$CFG->dirroot/course/moodleform_mod.php");
 class mod_respondusws_mod_form extends moodleform_mod {
@@ -18,8 +18,11 @@ class mod_respondusws_mod_form extends moodleform_mod {
             $mform->setType("name", PARAM_CLEANHTML);
         }
         $mform->addRule("name", null, "required", null, "client");
-        $this->add_intro_editor(true,
-          get_string("responduswsintro", "respondusws"));
+        if ($CFG->version >= 2015051100) {
+            $this->standard_intro_elements(get_string("responduswsintro", "respondusws"));
+        } else {
+            $this->add_intro_editor(true, get_string("responduswsintro", "respondusws"));
+        }
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
     }

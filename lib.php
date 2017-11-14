@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2015 Respondus, Inc.  All Rights Reserved.
-// Date: December 21, 2015.
+// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
+// Date: May 01, 2017.
 defined("MOODLE_INTERNAL") || die();
 function respondusws_add_instance($instance) {
     global $DB;
@@ -90,7 +90,12 @@ function respondusws_get_post_actions() {
       "retrieve"
       );
 }
-function respondusws_delete_course($course, $showfeedback) {
+if ($CFG->version >= 2016120500) {
+    function respondusws_course_content_deleted(\core\event\course_content_deleted $event) {
+    }
+} else {
+    function respondusws_delete_course($course, $showfeedback) {
+    }
 }
 function respondusws_process_options(&$instance) {
 }
@@ -138,9 +143,16 @@ function respondusws_get_coursemodule_info($course_module) {
     $info->name = $instance->name;
     return $info;
 }
-function respondusws_get_types() {
-    $types = array();
-    return $types;
+if ($CFG->version >= 2016052300) {
+    function respondusws_get_shortcuts($defaultitem) {
+        $items = array();
+        return $items;
+    }
+} else {
+    function respondusws_get_types() {
+        $types = array();
+        return $types;
+    }
 }
 function respondusws_get_recent_mod_activity(&$activities, &$index, $timestart, $course_id, $cmid, $user_id = 0, $group_id = 0) {
 }
