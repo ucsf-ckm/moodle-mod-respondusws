@@ -6,7 +6,7 @@ defined("MOODLE_INTERNAL") || die();
 if (!isset($CFG)) {
     global $CFG;
 }
-if (isset($CFG) && $CFG->version >= 2014051200) {
+if (isset($CFG) && isset($CFG->version) && $CFG->version >= 2014051200) {
     if (!isset($plugin)) {
         $plugin = new stdClass();
     }
