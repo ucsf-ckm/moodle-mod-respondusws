@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
-// Date: May 01, 2017.
+// Copyright (c) 2009-2018 Respondus, Inc.  All Rights Reserved.
+// Date: June 27, 2018.
 $RWSEDBG = false;
 $RWSDBGL = "respondusws_err.log";
 $RWSIHLOG = false;
@@ -188,6 +188,112 @@ define("RWSAUM", 60);
 define("RWSRXP", "regexp");
 define("RWSMXC", 1200);
 define("RWSPRF", "rawfile");
+function respondusws_utf8encode($r_inp, $r_encoding = "") {
+    if (strlen($r_inp) == 0) {
+        return $r_inp;
+    } else if ($r_encoding == 'UTF-8') {
+        return $r_inp;
+    } else if (RWSIVUtf8($r_inp)) {
+        return $r_inp;
+    } else if (strlen($r_encoding) == 0) {
+        if (function_exists('mb_detect_encoding')) {
+            $r_detected = mb_detect_encoding($r_inp, mb_detect_order(), true);
+            if ($r_detected === false) {
+                if (function_exists('mb_check_encoding')) {
+                    if (mb_check_encoding($r_inp, 'ISO-8859-1')) {
+                        return utf8_encode($r_inp);
+                    } else {
+                        return $r_inp;
+                    }
+                } else {
+                    return utf8_encode($r_inp);
+                }
+            } else {
+                return mb_convert_encoding($r_inp, 'UTF-8', $r_detected);
+            }
+        } else {
+            return utf8_encode($r_inp);
+        }
+    } else if ($r_encoding == 'ISO-8859-1') {
+        return utf8_encode($r_inp);
+    } else if (function_exists('mb_convert_encoding')) {
+        return mb_convert_encoding($r_inp, 'UTF-8', $r_encoding);
+    } else {
+        return $r_inp;
+    }
+}
+function RWSIVUtf8($r_str) {
+    $r_l = strlen($r_str);
+     if($r_l == 0) {
+        return true;
+    } else if (function_exists('mb_check_encoding')) {
+        return  mb_check_encoding($r_str, 'UTF-8');
+    } else {
+    }
+    $r_i = 0;
+    while ($r_i < $r_l) {
+        $r_c0 = ord($r_str[$r_i]);
+        if ($r_i + 1 < $r_l) {
+            $r_c1 = ord($r_str[$r_i + 1]);
+        }
+        if ($r_i + 2 < $r_l) {
+            $r_c2 = ord($r_str[$r_i + 2]);
+        }
+        if ($r_i + 3 < $r_l) {
+            $r_c3 = ord($r_str[$r_i + 3]);
+        }
+        if ($r_c0 >= 0x00 && $r_c0 <= 0x7e) {
+            $r_i++;
+        } else if ($r_i + 1 < $r_l
+            && $r_c0 >= 0xc2 && $r_c0 <= 0xdf
+            && $r_c1 >= 0x80 && $r_c1 <= 0xbf
+        ) {
+            $r_i += 2;
+        } else if ($r_i + 2 < $r_l
+            && $r_c0 == 0xe0
+            && $r_c1 >= 0xa0 && $r_c1 <= 0xbf
+            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
+        ) {
+            $r_i += 3;
+        } else if ($r_i + 2 < $r_l
+            && (($r_c0 >= 0xe1 && $r_c0 <= 0xec) || $r_c0 == 0xee || $r_c0 == 0xef)
+            && $r_c1 >= 0x80 && $r_c1 <= 0xbf
+            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
+        ) {
+            $r_i += 3;
+        } else if ($r_i + 2 < $r_l
+            && $r_c0 == 0xed
+            && $r_c1 >= 0x80 && $r_c1 <= 0x9f
+            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
+        ) {
+            $r_i += 3;
+        } else if ($r_i + 3 < $r_l
+            && $r_c0 == 0xf0
+            && $r_c1 >= 0x90 && $r_c1 <= 0xbf
+            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
+            && $r_c3 >= 0x80 && $r_c3 <= 0xbf
+        ) {
+            $r_i += 4;
+        } else if ($r_i + 3 < $r_l
+            && $r_c0 >= 0xf1 && $r_c0 <= 0xf3
+            && $r_c1 >= 0x80 && $r_c1 <= 0xbf
+            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
+            && $r_c3 >= 0x80 && $r_c3 <= 0xbf
+        ) {
+            $r_i += 4;
+        } else if ($r_i + 3 < $r_l
+            && $r_c0 == 0xf4
+            && $r_c1 >= 0x80 && $r_c1 <= 0x8f
+            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
+            && $r_c3 >= 0x80 && $r_c3 <= 0xbf
+        ) {
+            $r_i += 4;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
 function RWSRHCom() {
     header("Cache-Control: private, must-revalidate");
     header("Expires: -1");
@@ -217,7 +323,7 @@ function RWSSWarn($r_wm = "") {
     echo "<service_warning>";
     if (!empty($r_wm)) {
         RWSELog("warning=$r_wm");
-        echo utf8_encode(htmlspecialchars($r_wm));
+        echo respondusws_utf8encode(htmlspecialchars($r_wm));
     } else {
         RWSELog("warning=3004");
         echo "3004";
@@ -231,7 +337,7 @@ function RWSSStat($r_sm = "") {
     echo "<service_status>";
     if (!empty($r_sm)) {
         RWSELog("status=$r_sm");
-        echo utf8_encode(htmlspecialchars($r_sm));
+        echo respondusws_utf8encode(htmlspecialchars($r_sm));
     } else {
         RWSELog("status=1007");
         echo "1007";
@@ -245,7 +351,7 @@ function RWSSErr($r_errm = "") {
     echo "<service_error>";
     if (!empty($r_errm)) {
         RWSELog("error=$r_errm");
-        echo utf8_encode(htmlspecialchars($r_errm));
+        echo respondusws_utf8encode(htmlspecialchars($r_errm));
     } else {
         RWSELog("error=2004");
         echo "2004";
@@ -360,6 +466,7 @@ function RWSCMBVer() {
         || $r_bv == 2015122100
         || $r_bv == 2016051300
         || $r_bv == 2017042800
+        || $r_bv == 2018062700
     ) {
         return;
     }
@@ -444,7 +551,7 @@ function RWSGSUrl($r_fhts, $r_inq) {
     } else {
         $r_su .= $_SERVER['HTTP_HOST'];
     }
-    if (strpos($r_su, ":") === false) {
+    if (strpos($r_su, ":", 6) === false) {
         if (($r_hs && $_SERVER['SERVER_PORT'] != 443)
             || (!$r_hs && $_SERVER['SERVER_PORT'] != 80)
         ) {
@@ -1269,7 +1376,7 @@ function RWSPCReqs() {
             echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
             echo "<rwscas>\r\n";
             echo "\t<st>";
-            echo utf8_encode(htmlspecialchars(trim($r_tkt)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_tkt)));
             echo "\t</st>\r\n";
             echo "</rwscas>\r\n";
             exit;
@@ -7297,9 +7404,7 @@ function RWSESRec($r_qiz) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     if ($r_qiz->timeopen == 0) {
@@ -7647,9 +7752,7 @@ function RWSESRec($r_qiz) {
     if (count($r_fbt) > 0) {
         foreach ($r_fbt as $r_fd) {
             $r_fld = $r_fd;
-            if (!RWSIVUtf8($r_fld)) {
-                $r_fld = utf8_encode($r_fld);
-            }
+            $r_fld = respondusws_utf8encode($r_fld);
             $r_fld = pack("a*x", $r_fld);
             $r_rcd .= $r_fld;
         }
@@ -7745,9 +7848,7 @@ function RWSESARec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -7758,9 +7859,7 @@ function RWSESARec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -7787,9 +7886,7 @@ function RWSESARec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     if (respondusws_floatcompare($CFG->version, 2013051400, 2) >= 0) {
@@ -7827,9 +7924,7 @@ function RWSESARec($r_qst) {
     $r_rcd .= $r_fld;
     foreach ($r_asrs as $r_asr) {
         $r_fld = $r_asr->answer;
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
         $r_fld = $r_asr->fraction;
@@ -7867,9 +7962,7 @@ function RWSESARec($r_qst) {
         $r_fld     = file_rewrite_pluginfile_urls(
             $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
         );
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
     }
@@ -7899,9 +7992,7 @@ function RWSETFRec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -7912,9 +8003,7 @@ function RWSETFRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -7941,9 +8030,7 @@ function RWSETFRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_op = $DB->get_record("question_truefalse",
@@ -7972,9 +8059,7 @@ function RWSETFRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_txt      = $r_fal->feedback;
@@ -7985,9 +8070,7 @@ function RWSETFRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = 8;
@@ -8015,9 +8098,7 @@ function RWSEMARec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt                   = $r_qst->questiontext;
@@ -8059,9 +8140,7 @@ function RWSEMARec($r_qst) {
             explode($r_clzf[$r_i], $r_qst->questiontext, 2));
     }
     $r_fld = $r_qst->questiontext;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -8078,9 +8157,7 @@ function RWSEMARec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = 8;
@@ -8123,9 +8200,7 @@ function RWSECRec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -8136,9 +8211,7 @@ function RWSECRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -8165,9 +8238,7 @@ function RWSECRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_asrs = $DB->get_records("question_answers",
@@ -8220,9 +8291,7 @@ function RWSECRec($r_qst) {
         $r_fld     = file_rewrite_pluginfile_urls(
             $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
         );
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
         $r_o = $DB->get_record("question_calculated",
@@ -8351,9 +8420,7 @@ function RWSEMCRec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -8364,9 +8431,7 @@ function RWSEMCRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -8393,9 +8458,7 @@ function RWSEMCRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     if (respondusws_floatcompare($CFG->version, 2013111800, 2) >= 0) {
@@ -8446,9 +8509,7 @@ function RWSEMCRec($r_qst) {
         $r_fld     = file_rewrite_pluginfile_urls(
             $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
         );
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
         $r_fld = $r_asr->fraction;
@@ -8504,9 +8565,7 @@ function RWSEMCRec($r_qst) {
         $r_fld     = file_rewrite_pluginfile_urls(
             $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
         );
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
     }
@@ -8518,9 +8577,7 @@ function RWSEMCRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_txt      = $r_op->partiallycorrectfeedback;
@@ -8531,9 +8588,7 @@ function RWSEMCRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_txt      = $r_op->incorrectfeedback;
@@ -8544,9 +8599,7 @@ function RWSEMCRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = 8;
@@ -8575,9 +8628,7 @@ function RWSEMRec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -8588,9 +8639,7 @@ function RWSEMRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -8617,9 +8666,7 @@ function RWSEMRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     if (respondusws_floatcompare($CFG->version, 2013051400, 2) >= 0) {
@@ -8665,15 +8712,11 @@ function RWSEMRec($r_qst) {
         $r_fld     = file_rewrite_pluginfile_urls(
             $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
         );
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
         $r_fld = $r_pr->answertext;
-        if (!RWSIVUtf8($r_fld)) {
-            $r_fld = utf8_encode($r_fld);
-        }
+        $r_fld = respondusws_utf8encode($r_fld);
         $r_fld = pack("a*x", $r_fld);
         $r_rcd .= $r_fld;
     }
@@ -8702,9 +8745,7 @@ function RWSEDRec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -8715,9 +8756,7 @@ function RWSEDRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -8731,9 +8770,7 @@ function RWSEDRec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = 8;
@@ -8762,9 +8799,7 @@ function RWSEERec($r_qst) {
     $r_ctxi = $DB->get_field("question_categories", "contextid",
         array("id" => $r_qst->category));
     $r_fld = $r_qst->name;
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld  = pack("a*x", $r_fld);
     $r_rcd = $r_fld;
     $r_txt      = $r_qst->questiontext;
@@ -8775,9 +8810,7 @@ function RWSEERec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = "";
@@ -8801,9 +8834,7 @@ function RWSEERec($r_qst) {
     $r_fld     = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     if (respondusws_floatcompare($CFG->version, 2011070100, 2) >= 0) {
@@ -8829,9 +8860,7 @@ function RWSEERec($r_qst) {
     $r_fld  = file_rewrite_pluginfile_urls(
         $r_txt, $r_scr, $r_ctxi, $r_cmp, $r_far, $r_iti, null
     );
-    if (!RWSIVUtf8($r_fld)) {
-        $r_fld = utf8_encode($r_fld);
-    }
+    $r_fld = respondusws_utf8encode($r_fld);
     $r_fld = pack("a*x", $r_fld);
     $r_rcd .= $r_fld;
     $r_fld = 8;
@@ -9389,72 +9418,6 @@ function RWSPAtt($r_qtyp, $r_cid, $r_ctxi, $r_cmp, $r_far, $r_iti, $r_txt) {
     }
     return $r_out;
 }
-function RWSIVUtf8($r_str) {
-    $r_l = strlen($r_str);
-    $r_i   = 0;
-    while ($r_i < $r_l) {
-        $r_c0 = ord($r_str[$r_i]);
-        if ($r_i + 1 < $r_l) {
-            $r_c1 = ord($r_str[$r_i + 1]);
-        }
-        if ($r_i + 2 < $r_l) {
-            $r_c2 = ord($r_str[$r_i + 2]);
-        }
-        if ($r_i + 3 < $r_l) {
-            $r_c3 = ord($r_str[$r_i + 3]);
-        }
-        if ($r_c0 >= 0x00 && $r_c0 <= 0x7e) {
-            $r_i++;
-        } else if ($r_i + 1 < $r_l
-            && $r_c0 >= 0xc2 && $r_c0 <= 0xdf
-            && $r_c1 >= 0x80 && $r_c1 <= 0xbf
-        ) {
-            $r_i += 2;
-        } else if ($r_i + 2 < $r_l
-            && $r_c0 == 0xe0
-            && $r_c1 >= 0xa0 && $r_c1 <= 0xbf
-            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
-        ) {
-            $r_i += 3;
-        } else if ($r_i + 2 < $r_l
-            && (($r_c0 >= 0xe1 && $r_c0 <= 0xec) || $r_c0 == 0xee || $r_c0 == 0xef)
-            && $r_c1 >= 0x80 && $r_c1 <= 0xbf
-            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
-        ) {
-            $r_i += 3;
-        } else if ($r_i + 2 < $r_l
-            && $r_c0 == 0xed
-            && $r_c1 >= 0x80 && $r_c1 <= 0x9f
-            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
-        ) {
-            $r_i += 3;
-        } else if ($r_i + 3 < $r_l
-            && $r_c0 == 0xf0
-            && $r_c1 >= 0x90 && $r_c1 <= 0xbf
-            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
-            && $r_c3 >= 0x80 && $r_c3 <= 0xbf
-        ) {
-            $r_i += 4;
-        } else if ($r_i + 3 < $r_l
-            && $r_c0 >= 0xf1 && $r_c0 <= 0xf3
-            && $r_c1 >= 0x80 && $r_c1 <= 0xbf
-            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
-            && $r_c3 >= 0x80 && $r_c3 <= 0xbf
-        ) {
-            $r_i += 4;
-        } else if ($r_i + 3 < $r_l
-            && $r_c0 == 0xf4
-            && $r_c1 >= 0x80 && $r_c1 <= 0x8f
-            && $r_c2 >= 0x80 && $r_c2 <= 0xbf
-            && $r_c3 >= 0x80 && $r_c3 <= 0xbf
-        ) {
-            $r_i += 4;
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
 function RWSDSAct($r_ac) {
     RWSELog("action=$r_ac");
     if ($r_ac == "phpinfo") {
@@ -9565,7 +9528,7 @@ function RWSASInfo() {
     if (!empty($r_ver)) {
         echo "\t<module_version>";
         if ($r_bv >= 2010042801) {
-            echo utf8_encode(htmlspecialchars($r_ver));
+            echo respondusws_utf8encode(htmlspecialchars($r_ver));
         } else {
             echo "2009093000";
         }
@@ -9576,7 +9539,7 @@ function RWSASInfo() {
     if (!empty($r_rel)) {
         echo "\t<module_release>";
         if ($r_bv >= 2010042801) {
-            echo utf8_encode(htmlspecialchars($r_rel));
+            echo respondusws_utf8encode(htmlspecialchars($r_rel));
         } else {
             echo "1.0.2";
         }
@@ -9586,13 +9549,13 @@ function RWSASInfo() {
     }
     if ($r_bv >= 2010042801) {
         echo "\t<module_behavior>";
-        echo utf8_encode(htmlspecialchars($r_bv));
+        echo respondusws_utf8encode(htmlspecialchars($r_bv));
         echo "</module_behavior>\r\n";
     }
     if ($r_ia) {
         if (!empty($r_req)) {
             echo "\t<module_requires>";
-            echo utf8_encode(htmlspecialchars($r_req));
+            echo respondusws_utf8encode(htmlspecialchars($r_req));
             echo "</module_requires>\r\n";
         } else {
             echo "\t<module_requires />\r\n";
@@ -9605,7 +9568,7 @@ function RWSASInfo() {
     }
     if ($r_ia) {
         echo "\t<endpoint>";
-        echo utf8_encode(htmlspecialchars($r_su));
+        echo respondusws_utf8encode(htmlspecialchars($r_su));
         echo "</endpoint>\r\n";
     } else {
         echo "\t<endpoint>(authentication required)</endpoint>\r\n";
@@ -9613,28 +9576,28 @@ function RWSASInfo() {
     if ($r_ia) {
         echo "\t<whoami>";
         $r_who = trim(exec("whoami"));
-        echo utf8_encode(htmlspecialchars($r_who));
+        echo respondusws_utf8encode(htmlspecialchars($r_who));
         echo "</whoami>\r\n";
     } else {
         echo "\t<whoami>(authentication required)</whoami>\r\n";
     }
     if ($r_ilg) {
         echo "\t<moodle_version>";
-        echo utf8_encode(htmlspecialchars($CFG->version));
+        echo respondusws_utf8encode(htmlspecialchars($CFG->version));
         echo "</moodle_version>\r\n";
     } else {
         echo "\t<moodle_version>(authentication required)</moodle_version>\r\n";
     }
     if ($r_ilg) {
         echo "\t<moodle_release>";
-        echo utf8_encode(htmlspecialchars($CFG->release));
+        echo respondusws_utf8encode(htmlspecialchars($CFG->release));
         echo "</moodle_release>\r\n";
     } else {
         echo "\t<moodle_release>(authentication required)</moodle_release>\r\n";
     }
     if ($r_ia) {
         echo "\t<moodle_site_id>";
-        echo utf8_encode(htmlspecialchars(SITEID));
+        echo respondusws_utf8encode(htmlspecialchars(SITEID));
         echo "</moodle_site_id>\r\n";
     } else {
         echo "\t<moodle_site_id>(authentication required)</moodle_site_id>\r\n";
@@ -9659,7 +9622,7 @@ function RWSASInfo() {
         if ($r_mn && count($r_mn) > 0) {
             $r_ml = implode(",", $r_mn);
             echo "\t<moodle_module_types>";
-            echo utf8_encode(htmlspecialchars(trim($r_ml)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_ml)));
             echo "</moodle_module_types>\r\n";
         } else {
             echo "\t<moodle_module_types />\r\n";
@@ -9684,7 +9647,7 @@ function RWSASInfo() {
         if (count($r_qtn) > 0) {
             $r_qtl = implode(",", $r_qtn);
             echo "\t<moodle_question_types>";
-            echo utf8_encode(htmlspecialchars(trim($r_qtl)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_qtl)));
             echo "</moodle_question_types>\r\n";
         } else {
             echo "\t<moodle_question_types />\r\n";
@@ -9939,10 +9902,10 @@ function RWSACList() {
     foreach ($r_crss as $r_c) {
         echo "\t<course>\r\n";
         echo "\t\t<name>";
-        echo utf8_encode(htmlspecialchars(trim($r_c->fullname)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_c->fullname)));
         echo "</name>\r\n";
         echo "\t\t<id>";
-        echo utf8_encode(htmlspecialchars(trim($r_c->id)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_c->id)));
         echo "</id>\r\n";
         echo "\t</course>\r\n";
     }
@@ -9986,7 +9949,7 @@ function RWSASList() {
             $r_fnm = substr($r_fnm, 0, $r_p);
         }
         echo "\t<format_name>";
-        echo utf8_encode(htmlspecialchars(trim($r_fnm)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_fnm)));
         echo "</format_name>\r\n";
     }
     foreach ($r_secs as $r_s) {
@@ -9994,22 +9957,22 @@ function RWSASList() {
         if ($r_bv >= 2011020100) {
             $r_nm = get_section_name($r_crs, $r_s);
             echo "\t\t<name>";
-            echo utf8_encode(htmlspecialchars($r_nm));
+            echo respondusws_utf8encode(htmlspecialchars($r_nm));
             echo "</name>\r\n";
         }
         $r_sum = trim($r_s->summary);
         if (strlen($r_sum) > 0) {
             echo "\t\t<summary>";
-            echo utf8_encode(htmlspecialchars($r_sum));
+            echo respondusws_utf8encode(htmlspecialchars($r_sum));
             echo "</summary>\r\n";
         } else {
             echo "\t\t<summary />\r\n";
         }
         echo "\t\t<id>";
-        echo utf8_encode(htmlspecialchars(trim($r_s->id)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_s->id)));
         echo "</id>\r\n";
         echo "\t\t<relative_index>";
-        echo utf8_encode(htmlspecialchars(trim($r_s->section)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_s->section)));
         echo "</relative_index>\r\n";
         echo "\t</section>\r\n";
     }
@@ -10043,13 +10006,13 @@ function RWSAQList() {
     foreach ($r_vqzs as $r_q) {
         echo "\t<quiz>\r\n";
         echo "\t\t<name>";
-        echo utf8_encode(htmlspecialchars(trim($r_q->name)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_q->name)));
         echo "</name>\r\n";
         echo "\t\t<id>";
-        echo utf8_encode(htmlspecialchars(trim($r_q->id)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_q->id)));
         echo "</id>\r\n";
         echo "\t\t<section_id>";
-        echo utf8_encode(htmlspecialchars(trim($r_q->section)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_q->section)));
         echo "</section_id>\r\n";
         echo "\t\t<writable>";
         if (in_array($r_q, $r_mqzs)) {
@@ -10102,14 +10065,14 @@ function RWSAQCList() {
     foreach ($r_qcs as $r_qc) {
         echo "\t<category>\r\n";
         echo "\t\t<name>";
-        echo utf8_encode(htmlspecialchars(trim($r_qc->name)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qc->name)));
         echo "</name>\r\n";
         echo "\t\t<id>";
-        echo utf8_encode(htmlspecialchars(trim($r_qc->id)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qc->id)));
         echo "</id>\r\n";
         if (!empty($r_qc->parent) && array_key_exists($r_qc->parent, $r_qcs)) {
             echo "\t\t<parent_id>";
-            echo utf8_encode(htmlspecialchars(trim($r_qc->parent)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_qc->parent)));
             echo "</parent_id>\r\n";
         }
         if ($r_bv >= 2010063001) {
@@ -10160,6 +10123,10 @@ function RWSAAQCat() {
             $r_ctx = get_context_instance(CONTEXT_COURSE, $r_cid);
         }
         $r_pi = 0;
+        if (respondusws_floatcompare($CFG->version, 2018051700, 2) >= 0) {
+            $r_top = question_get_top_category($r_ctx->id, true);
+            $r_pi = $r_top->id;
+        }
     } else if ($r_cid === false && $r_pi !== false) {
         $r_rcd = $DB->get_record("question_categories",
             array("id" => $r_pi));
@@ -10231,14 +10198,14 @@ function RWSAAQCat() {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
     echo "<addqcat>\r\n";
     echo "\t<name>";
-    echo utf8_encode(htmlspecialchars(trim($r_qcn)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_qcn)));
     echo "</name>\r\n";
     echo "\t<id>";
-    echo utf8_encode(htmlspecialchars(trim($r_qci)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_qci)));
     echo "</id>\r\n";
     if ($r_pi != 0) {
         echo "\t<parent_id>";
-        echo utf8_encode(htmlspecialchars(trim($r_pi)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_pi)));
         echo "</parent_id>\r\n";
     }
     echo "</addqcat>\r\n";
@@ -10459,13 +10426,13 @@ function RWSAAQuiz() {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
     echo "<addquiz>\r\n";
     echo "\t<name>";
-    echo utf8_encode(htmlspecialchars(trim($r_qiz->name)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_qiz->name)));
     echo "</name>\r\n";
     echo "\t<id>";
-    echo utf8_encode(htmlspecialchars(trim($r_qzmi)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_qzmi)));
     echo "</id>\r\n";
     echo "\t<section_id>";
-    echo utf8_encode(htmlspecialchars(trim($r_siu)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_siu)));
     echo "</section_id>\r\n";
     echo "\t<writable>yes</writable>\r\n";
     if ($RWSLB->mex || $RWSLB->bex) {
@@ -10810,7 +10777,15 @@ function RWSAAQRand() {
         $r_qiz->instance = $r_qiz->id;
     }
     $r_aerr = 0;
-    for ($r_i = 0; $r_i < $r_qct; $r_i++) {
+    $r_isc = true;
+    $r_cqm = true;
+    if (respondusws_floatcompare($CFG->version, 2018051700, 2) >= 0) {
+        $r_cqm = false;
+        quiz_add_random_questions($r_qiz, 0, $r_qca->id, $r_qct, $r_isc);
+        $DB->set_field("question", "defaultmark", $r_qg, array("qtype" => RWSRND, "category" => $r_qca->id));
+        $DB->set_field("quiz_slots", "maxmark", $r_qg, array("questioncategoryid" => $r_qca->id));
+    }
+    for ($r_i = 0; $r_cqm && $r_i < $r_qct; $r_i++) {
         $r_qst               = new stdClass();
         $r_qst->qtype        = RWSRND;
         $r_qst->parent       = 0;
@@ -10818,12 +10793,10 @@ function RWSAAQRand() {
         $r_qst->length       = 1;
         $r_qst->questiontext = 1;
         if (respondusws_floatcompare($CFG->version, 2011070100, 2) >= 0) {
-            $r_rqt    = question_bank::get_qtype("random");
-            $r_qst->name = $r_rqt->question_name($r_qca,
-                !empty($r_qst->questiontext));
+            $r_rqt    = question_bank::get_qtype($r_qst->qtype);
+            $r_qst->name = $r_rqt->question_name($r_qca, $r_isc);
         } else {
-            $r_qst->name = random_qtype::question_name($r_qca,
-                !empty($r_qst->questiontext));
+            $r_qst->name = random_qtype::question_name($r_qca, $r_isc);
         }
         $r_qst->questiontextformat = FORMAT_HTML;
         $r_qst->penalty            = 0;
@@ -10958,17 +10931,17 @@ function RWSAIQData() {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
     echo "<importqdata>\r\n";
     echo "\t<category_id>";
-    echo utf8_encode(htmlspecialchars(trim($r_qci)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_qci)));
     echo "</category_id>\r\n";
     echo "\t<dropped>";
-    echo utf8_encode(htmlspecialchars(trim($r_drp)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_drp)));
     echo "</dropped>\r\n";
     echo "\t<badatts>";
-    echo utf8_encode(htmlspecialchars(trim($r_ba)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_ba)));
     echo "</badatts>\r\n";
     $r_ql = implode(",", $r_qis);
     echo "\t<qlist>";
-    echo utf8_encode(htmlspecialchars(trim($r_ql)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_ql)));
     echo "</qlist>\r\n";
     echo "</importqdata>\r\n";
     exit;
@@ -11077,20 +11050,20 @@ function RWSAGQuiz() {
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
         echo "<getquiz>\r\n";
         echo "\t<name>";
-        echo utf8_encode(htmlspecialchars(trim($r_qiz->name)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qiz->name)));
         echo "</name>\r\n";
         echo "\t<id>";
-        echo utf8_encode(htmlspecialchars(trim($r_qzmi)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qzmi)));
         echo "</id>\r\n";
         echo "\t<section_id>";
-        echo utf8_encode(htmlspecialchars(trim($r_qiz->section)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qiz->section)));
         echo "</section_id>\r\n";
         echo "\t<writable>yes</writable>\r\n";
         echo "\t<sfile>";
-        echo utf8_encode(htmlspecialchars(trim($r_sfl)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_sfl)));
         echo "</sfile>\r\n";
         echo "\t<sdata>";
-        echo utf8_encode(htmlspecialchars(trim($r_sd)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_sd)));
         echo "</sdata>\r\n";
         if ($RWSLB->mex || $RWSLB->bex) {
             if ($RWSLB->mok) {
@@ -11236,26 +11209,26 @@ function RWSAEQData() {
         echo "<exportqdata>\r\n";
         if ($r_qzmi !== false) {
             echo "\t<quiz_id>";
-            echo utf8_encode(htmlspecialchars(trim($r_qzmi)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_qzmi)));
             echo "</quiz_id>\r\n";
         } else {
             echo "\t<category_id>";
-            echo utf8_encode(htmlspecialchars(trim($r_qci)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_qci)));
             echo "</category_id>\r\n";
         }
         echo "\t<dropped>";
-        echo utf8_encode(htmlspecialchars(trim($r_drp)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_drp)));
         echo "</dropped>\r\n";
         if ($r_qzmi !== false) {
             echo "\t<random>";
-            echo utf8_encode(htmlspecialchars(trim($r_ran)));
+            echo respondusws_utf8encode(htmlspecialchars(trim($r_ran)));
             echo "</random>\r\n";
         }
         echo "\t<qfile>";
-        echo utf8_encode(htmlspecialchars(trim($r_qfl)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qfl)));
         echo "</qfile>\r\n";
         echo "\t<qdata>";
-        echo utf8_encode(htmlspecialchars(trim($r_qd)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_qd)));
         echo "</qdata>\r\n";
         echo "</exportqdata>\r\n";
     } else {
@@ -11362,7 +11335,7 @@ function RWSAUFile() {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
     echo "<uploadfile>\r\n";
     echo "\t<course_subpath>";
-    echo utf8_encode(htmlspecialchars(trim($r_crpth)));
+    echo respondusws_utf8encode(htmlspecialchars(trim($r_crpth)));
     echo "</course_subpath>\r\n";
     echo "</uploadfile>\r\n";
     exit;
@@ -11549,11 +11522,11 @@ function RWSADFile() {
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n";
         echo "<dnloadfile>\r\n";
         echo "\t<filename>";
-        echo utf8_encode(htmlspecialchars(trim($r_fn)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_fn)));
         echo "</filename>\r\n";
         $r_ed = base64_encode($r_fdat);
         echo "\t<filedata>";
-        echo utf8_encode(htmlspecialchars(trim($r_ed)));
+        echo respondusws_utf8encode(htmlspecialchars(trim($r_ed)));
         echo "</filedata>\r\n";
         echo "</dnloadfile>\r\n";
     } else {

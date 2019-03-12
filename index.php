@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
-// Date: May 01, 2017.
+// Copyright (c) 2009-2018 Respondus, Inc.  All Rights Reserved.
+// Date: June 27, 2018.
 require_once(dirname(dirname(dirname(__FILE__))) . "/config.php");
 require_once("$CFG->dirroot/course/lib.php");
 require_once(dirname(__FILE__) . "/lib.php");

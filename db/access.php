@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
-// Date: May 01, 2017.
+// Copyright (c) 2009-2018 Respondus, Inc.  All Rights Reserved.
+// Date: June 27, 2018.
 defined("MOODLE_INTERNAL") || die();
 $capabilities = array(
     "mod/respondusws:addinstance" => array(

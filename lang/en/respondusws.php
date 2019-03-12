@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2017 Respondus, Inc.  All Rights Reserved.
-// Date: May 01, 2017.
+// Copyright (c) 2009-2018 Respondus, Inc.  All Rights Reserved.
+// Date: June 27, 2018.
 $respondusws_moodlecfg_file = dirname(dirname(dirname(dirname(dirname(__FILE__))))) . "/config.php";
 require_once($respondusws_moodlecfg_file);
 defined("MOODLE_INTERNAL") || die();
@@ -38,7 +38,7 @@ $string["modulename_help"] =
   module cannot be created or deleted. A single shared instance is available to
   the entire site. What this module does is provide the <i>Respondus 4.0 Web
   Service Extension for Moodle</i>. This web service extension allows teachers
-  to use <a href=\"http://www.respondus.com\" target=\"_blank\">Respondus</a>
+  to use <a href=\"https://www.respondus.com\" target=\"_blank\">Respondus</a>
   to create, publish, and retrieve quizzes and question categories.
   </p></div>";
 $string["modulenameplural"] = "Respondus 4.0 Web Services";
@@ -62,3 +62,4 @@ $string["sharedintro"] = "<strong>Respondus 4.0 Web Service Extension for Moodle
 $string["sharedname"] = "Respondus 4.0 Web Services";
 $string['eventquestionspublished'] = 'Questions published from Respondus';
 $string['eventquestionsretrieved'] = 'Questions retrieved by Respondus';
+$string['privacy:metadata'] = 'The Respondus 4.0 Web Services activity module plugin does not store any personal data.';
