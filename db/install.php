@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2018 Respondus, Inc.  All Rights Reserved.
-// Date: June 27, 2018.
+// Copyright (c) 2009-2019 Respondus, Inc.  All Rights Reserved.
+// Date: January 14, 2019.
 defined("MOODLE_INTERNAL") || die();
 require_once("$CFG->dirroot/course/lib.php");
 $respondusws_lib_file = dirname(dirname(__FILE__)) . "/lib.php";

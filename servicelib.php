@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2018 Respondus, Inc.  All Rights Reserved.
-// Date: June 27, 2018.
+// Copyright (c) 2009-2019 Respondus, Inc.  All Rights Reserved.
+// Date: January 14, 2019.
 $RWSEDBG = false;
 $RWSDBGL = "respondusws_err.log";
 $RWSIHLOG = false;
@@ -42,7 +42,8 @@ if ($r_rsf && $CFG->version >= 2015051100) {
 } else if ($r_rsf) {
     $r_rsf = is_readable("$CFG->libdir/conditionlib.php");
 }
-if ($r_rsf) {
+if ($r_rsf && $CFG->version >= 2018120300) {
+} else if ($r_rsf) {
     $r_rsf = is_readable("$CFG->libdir/eventslib.php");
 }
 if ($r_rsf) {
@@ -95,7 +96,10 @@ if ($CFG->version >= 2015051100) {
 } else {
     require_once("$CFG->libdir/conditionlib.php");
 }
-require_once("$CFG->libdir/eventslib.php");
+if ($r_rsf && $CFG->version >= 2018120300) {
+} else if ($r_rsf) {
+    require_once("$CFG->libdir/eventslib.php");
+}
 require_once("$CFG->libdir/weblib.php");
 require_once("$CFG->libdir/accesslib.php");
 require_once("$CFG->libdir/dmllib.php");
@@ -467,6 +471,7 @@ function RWSCMBVer() {
         || $r_bv == 2016051300
         || $r_bv == 2017042800
         || $r_bv == 2018062700
+        || $r_bv == 2019011400
     ) {
         return;
     }
