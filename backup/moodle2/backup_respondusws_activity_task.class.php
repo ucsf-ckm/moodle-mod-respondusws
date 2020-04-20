@@ -1,7 +1,7 @@
 <?php
 // Respondus 4.0 Web Service Extension For Moodle
-// Copyright (c) 2009-2019 Respondus, Inc.  All Rights Reserved.
-// Date: January 14, 2019.
+// Copyright (c) 2009-2020 Respondus, Inc.  All Rights Reserved.
+// Date: February 14, 2020.
 defined("MOODLE_INTERNAL") || die();
 $respondusws_stepslib_file = dirname(__FILE__) . "/backup_respondusws_stepslib.php";
 require_once($respondusws_stepslib_file);
