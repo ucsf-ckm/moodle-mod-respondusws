@@ -202,8 +202,6 @@ if (respondusws_floatcompare($CFG->version, 2014051200, 2) >= 0) {
         $navigation->nodetype = navigation_node::NODETYPE_LEAF;
     }
 }
-function respondusws_extend_settings_navigation(settings_navigation $settings, navigation_node $navigation) {
-}
 function respondusws_get_extra_capabilities() {
     $caps = array(
         "mod/quiz:view",
