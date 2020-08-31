@@ -160,9 +160,6 @@ function respondusws_reset_userdata($data) {
 function respondusws_check_file_access($attempt_id, $question_id, $context = null) {
     return true;
 }
-function respondusws_question_list_instances($question_id) {
-    return array();
-}
 function respondusws_supports($feature) {
     global $CFG;
     switch($feature) {
