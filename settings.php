@@ -3,52 +3,27 @@
 // Copyright (c) 2009-2020 Respondus, Inc.  All Rights Reserved.
 // Date: February 14, 2020.
 defined("MOODLE_INTERNAL") || die();
-if (!function_exists("respondusws_getsettingsstring")) {
-    function respondusws_getsettingsstring($identifier) {
-        global $CFG;
-        $component = "respondusws";
-        if (isset($CFG) && $CFG->version >= 2012062500) {
-            return new lang_string($identifier, $component);
-        } else {
-            return get_string($identifier, $component);
-        }
-    }
-}
+
 if ($ADMIN->fulltree) {
     $settings->add(
       new admin_setting_heading(
         "respondusws/moduledescheader",
-        respondusws_getsettingsstring("moduledescheader"),
-        respondusws_getsettingsstring("moduledescription")
+          new lang_string('moduledescheader', 'respondusws'),
+          new lang_string('moduledescription', 'respondusws')
       )
     );
-    if (!isset($respondusws_info)) {
-        $respondusws_version_file = dirname(__FILE__) . "/version.php";
-        if (is_readable($respondusws_version_file)) {
-            include($respondusws_version_file);
-        }
-    }
-    if (isset($respondusws_info)) {
-        $settings->add(
-          new admin_setting_heading(
-            "respondusws/moduleversionheader",
-            respondusws_getsettingsstring("moduleversionheader"),
-            "$respondusws_info->version ($respondusws_info->release)"
-          )
-        );
-    }
     $settings->add(
       new admin_setting_heading(
         "respondusws/authenticationsettingsheader",
-        respondusws_getsettingsstring("authenticationsettingsheader"),
-        respondusws_getsettingsstring("authenticationsettingsheaderinfo")
+          new lang_string('authenticationsettingsheader', 'respondusws'),
+          new lang_string('authenticationsettingsheaderinfo', 'respondusws')
       )
     );
     $settings->add(
       new admin_setting_configtext(
         "respondusws/username",
-        respondusws_getsettingsstring("username"),
-        respondusws_getsettingsstring("usernameinfo"),
+          new lang_string('username', 'respondusws'),
+          new lang_string('usernameinfo', 'respondusws'),
         "",
         PARAM_TEXT
       )
@@ -56,16 +31,16 @@ if ($ADMIN->fulltree) {
     $settings->add(
       new admin_setting_configpasswordunmask(
         "respondusws/password",
-        respondusws_getsettingsstring("password"),
-        respondusws_getsettingsstring("passwordinfo"),
+          new lang_string('password', 'respondusws'),
+          new lang_string('passwordinfo', 'respondusws'),
         ""
       )
     );
     $settings->add(
       new admin_setting_configpasswordunmask(
         "respondusws/secret",
-        respondusws_getsettingsstring("secret"),
-        respondusws_getsettingsstring("secretinfo"),
+          new lang_string('secret', 'respondusws'),
+          new lang_string('secretinfo', 'respondusws'),
         ""
       )
     );
