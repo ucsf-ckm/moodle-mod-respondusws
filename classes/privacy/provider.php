@@ -4,8 +4,40 @@
 // Date: February 14, 2020.
 namespace mod_respondusws\privacy;
 defined('MOODLE_INTERNAL') || die();
-class provider implements \core_privacy\local\metadata\null_provider {
+
+use core_privacy\local\metadata\collection;
+
+class provider implements
+    \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\data_provider {
+
     public static function get_reason() : string {
         return 'privacy:metadata';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function get_metadata(collection $collection): collection
+    {
+        $tables = [
+            'respondusws_auth_users' => [
+                'userid'
+            ],
+        ];
+
+        foreach ($tables as $table => $fields) {
+            $fielddata = [];
+            foreach ($fields as $field) {
+                $fielddata[$field] = 'privacy:metadata:' . $table . ':' . $field;
+            }
+            $collection->add_database_table(
+                $table,
+                $fielddata,
+                'privacy:metadata:' . $table
+            );
+        }
+
+        return $collection;
     }
 }
