@@ -90,20 +90,7 @@ function respondusws_get_post_actions() {
       "retrieve"
       );
 }
-if ($CFG->version >= 2016120500) {
-    function respondusws_course_content_deleted(\core\event\course_content_deleted $event) {
-    }
-} else {
-    function respondusws_delete_course($course, $showfeedback) {
-    }
-}
-function respondusws_process_options(&$instance) {
-}
-function respondusws_process_email($modargs, $body) {
-}
-function respondusws_refresh_events($course_id = 0) {
-    return true;
-}
+
 function respondusws_print_overview($courses, &$htmlarray) {
     global $CFG;
     if (empty($courses) || !is_array($courses) || count($courses) == 0) {
@@ -143,17 +130,7 @@ function respondusws_get_coursemodule_info($course_module) {
     $info->name = $instance->name;
     return $info;
 }
-if ($CFG->version >= 2016052300) {
-    function respondusws_get_shortcuts($defaultitem) {
-        $items = array();
-        return $items;
-    }
-} else {
-    function respondusws_get_types() {
-        $types = array();
-        return $types;
-    }
-}
+
 function respondusws_get_recent_mod_activity(&$activities, &$index, $timestart, $course_id, $cmid, $user_id = 0, $group_id = 0) {
 }
 function respondusws_print_recent_mod_activity($activity, $course_id, $detail, $modnames, $viewfullnames) {
@@ -182,9 +159,6 @@ function respondusws_reset_userdata($data) {
 }
 function respondusws_check_file_access($attempt_id, $question_id, $context = null) {
     return true;
-}
-function respondusws_question_list_instances($question_id) {
-    return array();
 }
 function respondusws_supports($feature) {
     global $CFG;
@@ -225,10 +199,7 @@ if (respondusws_floatcompare($CFG->version, 2014051200, 2) >= 0) {
         $navigation->nodetype = navigation_node::NODETYPE_LEAF;
     }
 }
-function respondusws_extend_settings_navigation(settings_navigation $settings, navigation_node $navigation) {
-}
 function respondusws_get_extra_capabilities() {
-    global $CFG;
     $caps = array(
         "mod/quiz:view",
         "mod/quiz:preview",
@@ -250,11 +221,9 @@ function respondusws_get_extra_capabilities() {
         "moodle/question:usemine",
         "moodle/question:useall",
         "moodle/question:movemine",
-        "moodle/question:moveall"
+        "moodle/question:moveall",
+        "mod/quiz:addinstance"
         );
-    if (respondusws_floatcompare($CFG->version, 2012062501.07, 2) >= 0) {
-        $caps[] = "mod/quiz:addinstance";
-    }
     return $caps;
 }
 function respondusws_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {

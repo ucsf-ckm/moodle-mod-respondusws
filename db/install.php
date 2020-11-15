@@ -55,6 +55,7 @@ function respondusws_install() {
     if (!$cmid) {
         throw new moodle_exception("installcoursemodule", "respondusws");
     }
+    context_module::instance($cmid); // Make sure we create a context for this cm - prevents unit test failures.
     $instance->coursemodule = $cmid;
     if (respondusws_floatcompare($CFG->version, 2012120300, 2) >= 0) {
            $section = $DB->get_record("course_sections", array(
